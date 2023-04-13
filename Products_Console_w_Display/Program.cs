@@ -1,5 +1,9 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
+//Andrew Kernycky
+//Where I found how to use the Datatable[] select to look through a data table
+//https://stackoverflow.com/questions/17567830/select-a-datarow-from-a-datarow-collection
+
 
 using System;
 using System.ComponentModel.DataAnnotations;
@@ -12,36 +16,39 @@ class Sample
     {
         // Connect to a PostgreSQL database
         NpgsqlConnection conn = new NpgsqlConnection("Server=127.0.0.1:5432;User Id=postgres; " +
-           "Password=simpleps;Database=prods;");
+           "Password=*****;Database=prods;");
         conn.Open();
 
         // Define a query returning a single row result set
-        //NpgsqlCommand command = new NpgsqlCommand("SELECT * FROM product", conn);
-		NpgsqlCommand command = new NpgsqlCommand("SELECT * FROM customer", conn);
+		/*
+		 Change the table which the data is pulled from the first one for question 7 
+		 Second one for question 20
+		 */
+
+		//Question 7
+        NpgsqlCommand command = new NpgsqlCommand("SELECT * FROM product", conn);
+
+		//Question 20
+		//NpgsqlCommand command = new NpgsqlCommand("SELECT * FROM customer", conn);
+
+
 		//NpgsqlCommand quantity_command = new NpgsqlCommand("SELECT prod_id, prod_desc, prod_quantity from product WHERE prod_quantity <=30 and prod_quantity >= 12", conn);
 		//NpgsqlCommand repids_command = new NpgsqlCommand("SELECT rep_id, SUM(cust_balance) AS rep_total_bal FROM customer GROUP BY rep_id", conn);
-		// Execute the query and obtain the value of the first column of the first row
-		//Int64 count = (Int64)command.ExecuteScalar();
+
 		NpgsqlDataReader reader = command.ExecuteReader();
 
-        //NpgsqlDataReader quantity = quantity_command.ExecuteReader();
-		//NpgsqlDataReader repids = repids_command.ExecuteReader();
         
 		DataTable dt = new DataTable();
 		dt.Load(reader);
-
-		//DataTable dt2 = new DataTable();
-        //dt2.Load(quantity);
-
-		//DataTable dt3 = new DataTable();
-		//dt3.Load(repids);
-
+		
 		//print_results(dt);
-        //PrintSeven(dt);
-        printreps(dt);
-		//print_results(dt2);
-        //print_results(dt3);
 
+		//Question 7
+        PrintSeven(dt);
+
+		//Question 20
+        //printreps(dt);
+	
         conn.Close();
     }
 
@@ -51,6 +58,7 @@ class Sample
 		DataTable sorted_data = new DataTable();
         foreach (DataColumn col in data.Columns)
         {
+			//adds the columns to the new data table and the data type
 			if (col.ColumnName.Contains("prod_id") || col.ColumnName.Contains("prod_desc") || col.ColumnName.Contains("prod_quantity"))
             {
                 sorted_data.Columns.Add(col.ColumnName, col.DataType);
@@ -61,6 +69,7 @@ class Sample
 		}
         foreach (DataRow row in data.Rows)
         {
+			//turns the quanity into ints to compare if it is between 12 or 30
          int rowdata = Convert.ToInt32(row["prod_quantity"]);
          if  (rowdata >= 12 && rowdata<= 30){
             DataRow sorted_row = sorted_data.NewRow();
@@ -108,20 +117,23 @@ class Sample
     }
 	static void printreps(DataTable data)
 	{
+		//creates a new datatable
 		DataTable sorted_data = new DataTable();
 
-		
+		//creates the columns for the information the new table holds
 		sorted_data.Columns.Add("rep_id", typeof(string));
 		sorted_data.Columns.Add("total_bal",typeof(double));
 
 		foreach (DataRow row in data.Rows)
 		{
 			string repIdValue = row["rep_id"].ToString();
+			//does a comparison between the repid values in sorteddata table and the repids from the main table
+			//the matching rows are assigned tomaching rows meaning that rows need to be added and not created in the new data table
 			DataRow[] matchingRows = sorted_data.Select("rep_id = '" + repIdValue + "'");
-		
 
 			
-			if (matchingRows.Length == 0)
+			if (matchingRows.Length == 0) // if the row in complete data is not found in the sorted data table rows then it would return a variable
+				//of lenth zero meaning it needs to be added to the sorted table
 			{
 				// The current row's rep_id is not present in the sorted_data table
 				// Create a new row with the same schema as sorted_data
@@ -132,7 +144,7 @@ class Sample
 
 				// Add the new row to sorted_data
 				sorted_data.Rows.Add(newRow);
-				//add the balance to the rep row
+				//add the inital balance to the rep row
 
 				newRow["total_bal"] = row["cust_balance"];
 			}
@@ -156,12 +168,13 @@ class Sample
 
 		DataRow[] rowstoremove = sorted_data.Select("total_bal < '12000'");// filters the data from the table that fits the argument
 		//define the rows to remove outside of a loop otherwise it will raise and exception if data is removed mid loop
+		//removes rep ids that do not fit the required balance
 		foreach (DataRow row in rowstoremove)
 		{
 			sorted_data.Rows.Remove(row);
 		}
 		
-		data = sorted_data;
+		data = sorted_data; // sets the new data set to fit into the display function
 
 		Console.Write(sorted_data.Columns);
 
