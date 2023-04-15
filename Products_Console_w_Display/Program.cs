@@ -26,33 +26,42 @@ class Sample
 		 */
 
 		//Question 7
-        NpgsqlCommand command = new NpgsqlCommand("SELECT * FROM product", conn);
+        NpgsqlCommand command = new NpgsqlCommand("SELECT * FROM product", conn); //grabs the data from the SQL DB
 
 		//Question 20
-		//NpgsqlCommand command = new NpgsqlCommand("SELECT * FROM customer", conn);
+		NpgsqlCommand command_20 = new NpgsqlCommand("SELECT * FROM customer", conn);
 
 
 		//NpgsqlCommand quantity_command = new NpgsqlCommand("SELECT prod_id, prod_desc, prod_quantity from product WHERE prod_quantity <=30 and prod_quantity >= 12", conn);
 		//NpgsqlCommand repids_command = new NpgsqlCommand("SELECT rep_id, SUM(cust_balance) AS rep_total_bal FROM customer GROUP BY rep_id", conn);
 
-		NpgsqlDataReader reader = command.ExecuteReader();
-
-        
-		DataTable dt = new DataTable();
-		dt.Load(reader);
+		NpgsqlDataReader reader = command.ExecuteReader(); //reads the db data into a variable called "reader"
 		
+        
+		DataTable dt = new DataTable(); //creates a new datatable called dt
+		dt.Load(reader); //loads the new DT with the data from the reader
+		reader.Close(); //closes the reader allowing for a new NpgSql reader to load the second data table
+
+		NpgsqlDataReader reader2 = command_20.ExecuteReader();
+		DataTable dt2 = new DataTable();
+		dt2.Load(reader2);
+		reader2.Close();
+
+		//Prints the whole data table
 		//print_results(dt);
 
 		//Question 7
+		Console.WriteLine("Question 7 Product quantities");
         PrintSeven(dt);
 
 		//Question 20
-        //printreps(dt);
+		Console.WriteLine("Question 20 Total balance");
+        printreps(dt2);
 	
         conn.Close();
     }
 
-    static void PrintSeven(DataTable data)
+    static void PrintSeven(DataTable data) //question 7
         
     {
 		DataTable sorted_data = new DataTable();
@@ -64,12 +73,11 @@ class Sample
                 sorted_data.Columns.Add(col.ColumnName, col.DataType);
                 
             }
-
-            
 		}
+		
         foreach (DataRow row in data.Rows)
         {
-			//turns the quanity into ints to compare if it is between 12 or 30
+		//turns the quanity into ints to compare if it is between 12 or 30
          int rowdata = Convert.ToInt32(row["prod_quantity"]);
          if  (rowdata >= 12 && rowdata<= 30){
             DataRow sorted_row = sorted_data.NewRow();
@@ -82,40 +90,13 @@ class Sample
            };
 			
 		}
-        Console.Write(sorted_data.Columns);
-        Console.Write(sorted_data.Rows);
-		Console.WriteLine();
-        Dictionary<string, int> colWidths = new Dictionary<string, int>();
 
-        foreach (DataColumn col in sorted_data.Columns)
-        {
-            
-			
-			Console.Write(col.ColumnName);
-            var maxLabelSize = data.Rows.OfType<DataRow>()
-                    .Select(m => (m.Field<object>(col.ColumnName)?.ToString() ?? "").Length)
-                    .OrderByDescending(m => m).FirstOrDefault();
+		// display using print results function
+		print_results(sorted_data);
 
-            colWidths.Add(col.ColumnName, maxLabelSize);
-            for (int i = 0; i < maxLabelSize - col.ColumnName.Length + 14; i++) Console.Write(" ");
-       
-            
-        }
+	}
 
-        Console.WriteLine();
-
-       foreach (DataRow dataRow in sorted_data.Rows)
-        {
-            for (int j = 0; j < dataRow.ItemArray.Length; j++)
-            {
-               Console.Write(dataRow.ItemArray[j]);
-                for (int i = 0; i < colWidths[data.Columns[j].ColumnName] - dataRow.ItemArray[j].ToString().Length + 14; i++) Console.Write(" ");
-            }
-            Console.WriteLine();
-        }
-
-    }
-	static void printreps(DataTable data)
+	static void printreps(DataTable data) //question 20
 	{
 		//creates a new datatable
 		DataTable sorted_data = new DataTable();
@@ -128,44 +109,37 @@ class Sample
 		{
 			string repIdValue = row["rep_id"].ToString();
 			//does a comparison between the repid values in sorteddata table and the repids from the main table
-			//the matching rows are assigned tomaching rows meaning that rows need to be added and not created in the new data table
-			DataRow[] matchingRows = sorted_data.Select("rep_id = '" + repIdValue + "'");
+			
+			DataRow[] matchingRows = sorted_data.Select("rep_id = '" + repIdValue + "'"); //matchingrows references the data in a single row of sorteddata
 
 			
 			if (matchingRows.Length == 0) // if the row in complete data is not found in the sorted data table rows then it would return a variable
 				//of lenth zero meaning it needs to be added to the sorted table
 			{
-				// The current row's rep_id is not present in the sorted_data table
-				// Create a new row with the same schema as sorted_data
-				DataRow newRow = sorted_data.NewRow();
-				newRow["rep_id"] = row["rep_id"];
-				//newRow["total_bal"] = row["total_bal"];
-				// Repeat for all columns in sorted_data...
+				
+				DataRow newRow = sorted_data.NewRow(); // Create a new row object that copys the schema of sorted data rows 
+				newRow["rep_id"] = row["rep_id"]; // sets the data in newrow object in column repid to the original data in the main table
 
-				// Add the new row to sorted_data
-				sorted_data.Rows.Add(newRow);
 				//add the inital balance to the rep row
+				newRow["total_bal"] = row["cust_balance"]; 
 
-				newRow["total_bal"] = row["cust_balance"];
+				// Add the newrow object to sorted_data table
+				sorted_data.Rows.Add(newRow);
+
+				
 			}
 			else
 			{
-				
+				//converts the object data to doubles so they can be added
 				double value_to_add = Convert.ToDouble(row["cust_balance"]);
-				foreach (DataRow RepRow in sorted_data.Rows)
-				{
-					
-					string mainrow = Convert.ToString(row["rep_id"]);
-					string grouprow = Convert.ToString(RepRow["rep_id"]);
-					if (mainrow == grouprow) // im not understanding something about the object types of these two tables
-					//if (row["rep_id"] == RepRow["rep_id"])
-					{
-						RepRow["total_bal"] = (double)RepRow["total_bal"] + value_to_add;
-					}
-				}
+				double current_total = Convert.ToDouble(matchingRows[0]["total_bal"]);
+
+				// motifies the matchingrows object that references a row in sorteddata by adding the prevous total with the new cust bal
+				matchingRows[0]["total_bal"] =current_total + value_to_add;
+				
 			}
 		}
-
+		
 		DataRow[] rowstoremove = sorted_data.Select("total_bal < '12000'");// filters the data from the table that fits the argument
 		//define the rows to remove outside of a loop otherwise it will raise and exception if data is removed mid loop
 		//removes rep ids that do not fit the required balance
@@ -174,37 +148,10 @@ class Sample
 			sorted_data.Rows.Remove(row);
 		}
 		
-		data = sorted_data; // sets the new data set to fit into the display function
 
-		Console.Write(sorted_data.Columns);
-
-		Console.Write(sorted_data) ;
-		Console.WriteLine();
-		Dictionary<string, int> colWidths = new Dictionary<string, int>();
-
-		foreach (DataColumn col in data.Columns)
-		{
-			Console.Write(col.ColumnName);
-			var maxLabelSize = data.Rows.OfType<DataRow>()
-					.Select(m => (m.Field<object>(col.ColumnName)?.ToString() ?? "").Length)
-					.OrderByDescending(m => m).FirstOrDefault();
-
-			colWidths.Add(col.ColumnName, maxLabelSize);
-			for (int i = 0; i < maxLabelSize - col.ColumnName.Length + 14; i++) Console.Write(" ");
-		}
-
-		Console.WriteLine();
-
-		foreach (DataRow dataRow in data.Rows)
-		{
-			for (int j = 0; j < dataRow.ItemArray.Length; j++)
-			{
-				Console.Write(dataRow.ItemArray[j]);
-				for (int i = 0; i < colWidths[data.Columns[j].ColumnName] - dataRow.ItemArray[j].ToString().Length + 14; i++) Console.Write(" ");
-			}
-			Console.WriteLine();
-		}
-
+		// display using print results function
+		print_results(sorted_data);
+		
 	}
 	static void print_results(DataTable data)
 	{
