@@ -8,4 +8,4 @@ build_property.PlatformNeutralAssembly =
 build_property.EnforceExtendedAnalyzerRules = 
 build_property._SupportedPlatformList = Linux,macOS,Windows
 build_property.RootNamespace = Products_Console_w_Display
-build_property.ProjectDir = C:\GITHUB_SMC_Email\CS_190_WebProg\displayprodconsole\Products_Console_w_Display\
+build_property.ProjectDir = C:\DEVELOPMENT\Git-School\DB_display_console\Products_Console_w_Display\

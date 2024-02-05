@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "xNyRf/aMUbDjdPOwejtJWB6/bopBFPztioPDBV5T50R0WPcS6QR6SI4keKekIlJlbBafo5PpcXz8FWUBv7khag==",
+  "dgSpecHash": "ZSrm6uIKk9Q6X7K4PS33F/6hf4TEuBr9vtXCKKtccJ+iXxjh9PDNl7+Dwr/9IvKioz7Ia21Sc0YiPDaGy+J/3Q==",
   "success": true,
-  "projectFilePath": "C:\\GITHUB_SMC_Email\\CS_190_WebProg\\displayprodconsole\\Products_Console_w_Display\\Products_Console_w_Display.csproj",
+  "projectFilePath": "C:\\DEVELOPMENT\\Git-School\\DB_display_console\\Products_Console_w_Display\\Products_Console_w_Display.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\ajrke\\.nuget\\packages\\microsoft.extensions.logging.abstractions\\6.0.0\\microsoft.extensions.logging.abstractions.6.0.0.nupkg.sha512",
     "C:\\Users\\ajrke\\.nuget\\packages\\npgsql\\7.0.2\\npgsql.7.0.2.nupkg.sha512",
